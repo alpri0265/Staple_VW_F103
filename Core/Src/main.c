@@ -57,6 +57,8 @@ static uint32_t s_display_tick = 0;
 static float s_last_saved_target_kg = FORCE_DEFAULT_KG;
 static uint32_t s_last_target_change_tick = 0;
 static uint32_t s_last_flash_save_tick = 0;
+static uint32_t s_stop_confirm_until_tick = 0;
+static bool s_stop_confirm_armed = false;
 
 /* USER CODE END PV */
 
@@ -149,11 +151,22 @@ int main(void)
 
     if (input_stop_pressed()) {
       input_stop_clear();
+      uint32_t now = HAL_GetTick();
       if (cur_screen == SCREEN_ERROR) {
-        motor_clear_error();
-        display_set_screen(SCREEN_MAIN);
-        cur_screen = SCREEN_MAIN;
+        if (s_stop_confirm_armed && now <= s_stop_confirm_until_tick) {
+          s_stop_confirm_armed = false;
+          motor_clear_error();
+          display_set_screen(SCREEN_MAIN);
+          cur_screen = SCREEN_MAIN;
+        } else {
+          s_stop_confirm_armed = true;
+          s_stop_confirm_until_tick = now + 2000U;
+          display_show_error("STOP: press again");
+          cur_screen = SCREEN_ERROR;
+        }
       } else {
+        s_stop_confirm_armed = true;
+        s_stop_confirm_until_tick = now + 2000U;
         display_show_error("STOP: press again");
         cur_screen = SCREEN_ERROR;
       }
