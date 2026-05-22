@@ -104,7 +104,7 @@ void motor_stop(void)
     __disable_irq();
     s_step_period = 0;
     s_state = MOTOR_IDLE;
-    HAL_GPIO_WritePin(STEP_GPIO_Port, STEP_Pin, GPIO_PIN_RESET);
+    STEP_GPIO_Port->BSRR = (uint32_t)STEP_Pin << 16U;
     s_step_state = false;
     __enable_irq();
 }
