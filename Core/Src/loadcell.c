@@ -1,6 +1,7 @@
 #include "loadcell.h"
 #include "main.h"
 #include "config.h"
+#include <string.h>
 
 #define AVG_SAMPLES 8
 
@@ -70,9 +71,11 @@ void loadcell_init(void)
     hx_clk_lo();
     s_scale = 1.0f;
     s_offset = 0;
+    memset(s_avg_buf, 0, sizeof(s_avg_buf));
     s_avg_idx = 0;
     s_avg_sum = 0;
     s_avg_count = 0;
+    s_force_kg = 0.0f;
     s_has_error = false;
     s_last_tick = HAL_GetTick();
 }
@@ -155,4 +158,3 @@ int32_t loadcell_read_raw(void)
     }
     return 0;
 }
-
