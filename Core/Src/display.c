@@ -26,10 +26,25 @@ static char s_lcd_buf[LCD_ROWS][LCD_COLS + 1];
 static char s_new_buf[LCD_ROWS][LCD_COLS + 1];
 static char s_calib_lines[LCD_ROWS][LCD_COLS + 1];
 static char s_error_msg[LCD_COLS + 1];
+static uint8_t s_i2c_failures = 0;
 
 static void pcf_write(uint8_t byte)
 {
-    HAL_I2C_Master_Transmit(&hi2c1, LCD_I2C_ADDR, &byte, 1, 5);
+    HAL_StatusTypeDef st = HAL_I2C_Master_Transmit(&hi2c1, LCD_I2C_ADDR, &byte, 1, 50);
+    if (st == HAL_OK) {
+        s_i2c_failures = 0;
+        return;
+    }
+
+    if (s_i2c_failures < 255U) {
+        s_i2c_failures++;
+    }
+
+    if (s_i2c_failures == 1U) {
+        (void)HAL_I2C_DeInit(&hi2c1);
+        MX_I2C1_Init();
+        (void)HAL_I2C_Master_Transmit(&hi2c1, LCD_I2C_ADDR, &byte, 1, 50);
+    }
 }
 
 static void lcd_nibble(uint8_t nibble, uint8_t flags)
