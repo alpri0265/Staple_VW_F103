@@ -47,9 +47,9 @@ void input_debounce_tick(void)
 void input_enc_isr(void)
 {
     if (HAL_GPIO_ReadPin(ENC_DT_GPIO_Port, ENC_DT_Pin) == GPIO_PIN_SET) {
-        s_enc_delta++;
+        if (s_enc_delta < 127) s_enc_delta++;
     } else {
-        s_enc_delta--;
+        if (s_enc_delta > -127) s_enc_delta--;
     }
 }
 
@@ -100,4 +100,3 @@ void input_stop_set(void)
 {
     s_stop_flag = true;
 }
-
